@@ -1,7 +1,9 @@
 __author__ = 'michael'
 import re
 import matplotlib.pyplot as plt
+import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
+
 
 class GetElements():
 
@@ -10,7 +12,7 @@ class GetElements():
         pass
 
 
-    def getnodes(self):
+    def getnodes(self, layers):
 
         nodes = []
         elements=[]
@@ -54,46 +56,64 @@ class GetElements():
             cool = sorted(nodes, key=lambda x: x[2],)
             # print elements
             # print cool
+            last_layer = min(nodes, key=lambda x: x[2],)[2]
+            list_of_layers = []
 
-            x = []
-            y = []
-            z = []
-            node_numbers = []
-            element_numbers = []
-            for i in nodes:
-                if float(i[2]) <= -.2:
-                    node_numbers.append((i[0]))
-                    x.append(i[1])
-                    y.append(i[2])
-                    z.append(i[3])
+            y = [i[2] for i in nodes]
 
-            for i in elements:
-                element_numbers.append(i[0])
+            seen = set()
+            seen_add = seen.add
+            layers = [x for x in y if not (x in seen or seen_add(x))]
+            layers = layers[::-1]
+            print layers[1:]
 
-            elements_to_write = []
-            print element_numbers[len(element_numbers) - 1]
+            for layer in layers[1:]:
+                x = []
+                y = []
+                z = []
+                node_numbers = []
+                element_numbers = []
 
-            for index, elemnum  in enumerate(element_numbers):
-                number_of_nodes = 0
-                for node in node_numbers:
-                    if node in elements[index][1:8]:
-                        number_of_nodes+= 1
+                print layer
+                print last_layer
 
-                if number_of_nodes == 7:
-                    elements_to_write.append(elemnum)
+                for i in nodes:
+                    if i[2] <= layer and i[2] >= last_layer:
+                        node_numbers.append((i[0]))
+                        x.append(i[1])
+                        y.append(i[2])
+                        z.append(i[3])
 
-            elements_to_write = [int(i) for i in elements_to_write]
-            print elements_to_write
+                #print y
+                last_layer = layer
 
-            #print y
-            fig = plt.figure()
+                for i in elements:
+                    element_numbers.append(i[0])
+
+                elements_to_write = []
+
+                for index, elemnum  in enumerate(element_numbers):
+                    number_of_nodes = 0
+                    for node in node_numbers:
+                        if node in elements[index][1:8]:
+                            number_of_nodes+= 1
+
+                    if number_of_nodes == 7:
+                        elements_to_write.append(elemnum)
+
+                elements_to_write = [int(i) for i in elements_to_write]
+                print elements_to_write
+                list_of_layers.append(elements_to_write)
+
+            print list_of_layers
+            '''fig = plt.figure()
             ax = fig.add_subplot(111, projection='3d')
             ax.scatter(x, y, z, zdir='y')
             ax.set_xlim(-.5,.25)
             ax.set_ylim(-.25,.5)
             ax.set_zlim(-.25,.25)
-            plt.show()
+            plt.show()'''
 
 if __name__== "__main__":
     grabnodes =GetElements("Heat_Job.inp")
-    grabnodes.getnodes()
+    grabnodes.getnodes(20)
