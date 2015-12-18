@@ -13,6 +13,7 @@ class GetElements():
     def getnodes(self):
 
         nodes = []
+        elements=[]
         filehandle = open(self.inputfile, 'r')
 
         with filehandle as f:
@@ -21,31 +22,74 @@ class GetElements():
             start = 0
             end = 0
             for line in content:
-                if line.find("*Node") >= 0:
+                if "*Node" in line:
                     count += 1
                     start = count
-                elif line.find('*Element') >= 0:
+                elif '*Element' in line:
                     end = count
                     break
                 else:
                     count += 1
 
-
-
             for i in range(start, end):
                 nodes.append(re.findall(r'[+-]?\d+\.*\d*', content[i]))
-            #print sorted(nodes, key=lambda x: x[2],)
+
+            count = 0
+
+            for line in content:
+                if "*Element" in line:
+                    count += 1
+                    start = count
+                elif '*Nset,' in line:
+                    end = count
+                    break
+                else:
+                    count += 1
+
+            for i in range(start, end):
+                elements.append(re.findall(r'[+-]?\d+\.*\d*', content[i]))
+
+            elements = [[float(f) for f in row] for row in elements]
+            nodes = [[float(f) for f in row] for row in nodes]
+            cool = sorted(nodes, key=lambda x: x[2],)
+            # print elements
+            # print cool
+
             x = []
             y = []
             z = []
+            node_numbers = []
+            element_numbers = []
             for i in nodes:
-                x.append(i[1])
-                y.append(i[2])
-                z.append(i[3])
+                if float(i[2]) <= -.2:
+                    node_numbers.append((i[0]))
+                    x.append(i[1])
+                    y.append(i[2])
+                    z.append(i[3])
 
+            for i in elements:
+                element_numbers.append(i[1])
+
+            elements_to_write = []
+
+            for index, elemnum  in enumerate(element_numbers):
+                number_of_nodes = 0
+                for node in node_numbers:
+                    if node in elements[index][1:8]:
+                        number_of_nodes+= 1
+
+                if number_of_nodes == 7:
+                    elements_to_write.append(elemnum)
+
+            print elements_to_write
+
+            print y
             fig = plt.figure()
             ax = fig.add_subplot(111, projection='3d')
-            ax.scatter(x, y, z,)
+            ax.scatter(x, y, z, zdir='y')
+            ax.set_xlim(-.5,.25)
+            ax.set_ylim(-.25,.5)
+            ax.set_zlim(-.25,.25)
             plt.show()
 
 if __name__== "__main__":
