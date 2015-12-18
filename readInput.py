@@ -68,9 +68,10 @@ class GetElements():
                     z.append(i[3])
 
             for i in elements:
-                element_numbers.append(i[1])
+                element_numbers.append(i[0])
 
             elements_to_write = []
+            print element_numbers[len(element_numbers) - 1]
 
             for index, elemnum  in enumerate(element_numbers):
                 number_of_nodes = 0
@@ -81,9 +82,10 @@ class GetElements():
                 if number_of_nodes == 7:
                     elements_to_write.append(elemnum)
 
+            elements_to_write = [int(i) for i in elements_to_write]
             print elements_to_write
 
-            print y
+            #print y
             fig = plt.figure()
             ax = fig.add_subplot(111, projection='3d')
             ax.scatter(x, y, z, zdir='y')
