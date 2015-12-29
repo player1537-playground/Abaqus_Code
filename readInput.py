@@ -1,15 +1,25 @@
 __author__ = 'michael'
+
 import re
 import matplotlib.pyplot as plt
-import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
+
+'''from abaqus import *
+from abaqusConstants import *
+import part
+import assembly
+import step
+import load
+import interaction'''
 
 
 class GetElements():
 
-    def __init__(self, inputfile):
+    def __init__(self, inputfile, giveninstance, model, ):
         self.inputfile = inputfile
-        pass
+        self.givenInstance = giveninstance
+        self.model = model
+
 
 
     def getnodes(self, layers):
@@ -21,82 +31,106 @@ class GetElements():
         with filehandle as f:
             content = f.readlines()
             count = 0
+            loop_count = 0
             start = 0
             end = 0
-            for line in content:
-                if "*Node" in line:
-                    count += 1
-                    start = count
-                elif '*Element' in line:
-                    end = count
+            while True:
+
+                for line in content[count:]:
+                    if "*Node" in line:
+                        count += 1
+                        start = count
+                    elif '*Element' in line:
+                        end = count
+                        break
+                    else:
+                        count += 1
+
+                temp = []
+
+
+                if count >= len(content):
                     break
-                else:
-                    count += 1
 
-            for i in range(start, end):
-                nodes.append(re.findall(r'[+-]?\d+\.*\d*', content[i]))
 
-            count = 0
+                for i in range(start, end):
+                    temp.append(re.findall(r'[+-]?\d+\.*\d*', content[i]))
+                nodes.append(temp)
 
-            for line in content:
-                if "*Element" in line:
-                    count += 1
-                    start = count
-                elif '*Nset,' in line:
-                    end = count
-                    break
-                else:
-                    count += 1
+                for line in content[count:]:
+                    if "*Element" in line:
+                        count += 1
+                        start = count
+                    elif '*Nset,' in line:
+                        end = count
+                        break
+                    else:
+                        count += 1
 
-            for i in range(start, end):
-                elements.append(re.findall(r'[+-]?\d+\.*\d*', content[i]))
+                temp = []
+                for i in range(start, end):
+                    temp.append(re.findall(r'[+-]?\d+\.*\d*', content[i]))
+                elements.append(temp)
 
-            elements = [[float(f) for f in row] for row in elements]
-            nodes = [[float(f) for f in row] for row in nodes]
-            cool = sorted(nodes, key=lambda x: x[2],)
+            elements = [[[float(f) for f in row] for row in dimension] for dimension in elements]
+            nodes = [[[float(f) for f in row] for row in dimension] for dimension in nodes]
+            # cool = sorted(nodes, key=lambda x: x[2],)
             # print elements
             # print cool
-            last_layer = min(nodes, key=lambda x: x[2],)[2]
+            last_layer = []
+            for obj in range(len(nodes)):
+                last_layer.append(min(nodes[obj], key=lambda x: x[2],)[2])
+                # print obj
             list_of_layers = []
+            print last_layer
 
-            y = [i[2] for i in nodes]
+            y = [[i[2] for i in dimension] for dimension in nodes]
 
+            layers = []
             seen = set()
             seen_add = seen.add
-            layers = [x for x in y if not (x in seen or seen_add(x))]
-            layers = layers[::-1]
-            print layers[1:]
+            layer = [dimension for dimension in y]
+            for i in layer:
+                i = [x for x in i if not (x in seen or seen_add(x))]
+                layers.append(i[::-1])
 
-            for layer in layers[1:]:
+            print zip(layers[:][1:])
+            print zip(layers[0][1:], layers[1][1:])
+
+            for layer in zip(layers[0][1:], layers[1][1:]):
+                list(layer)
                 x = []
                 y = []
                 z = []
                 node_numbers = []
                 element_numbers = []
 
-                print layer
-                print last_layer
+                print "layer =" + str(layer)
+                print "Last Layer =" + str(last_layer)
 
-                for i in nodes:
-                    if i[2] <= layer and i[2] >= last_layer:
-                        node_numbers.append((i[0]))
-                        x.append(i[1])
-                        y.append(i[2])
-                        z.append(i[3])
+                for k, first_layer, second_layer in zip(nodes, layer, last_layer):
+                    for i in k:
+                        print first_layer
+                        if i[2] <= first_layer and i[2] >= second_layer:
+                            node_numbers.append((i[0]))
+                            x.append(i[1])
+                            y.append(i[2])
+                            z.append(i[3])
 
                 #print y
                 last_layer = layer
 
-                for i in elements:
-                    element_numbers.append(i[0])
+                for k in elements:
+                    for i in k:
+                        element_numbers.append(i[0])
 
                 elements_to_write = []
 
                 for index, elemnum  in enumerate(element_numbers):
                     number_of_nodes = 0
                     for node in node_numbers:
-                        if node in elements[index][1:8]:
-                            number_of_nodes+= 1
+                        if node in elements[0][index][1:8] or elements[1][index][1:8]:
+                            number_of_nodes += 1
 
                     if number_of_nodes == 7:
                         elements_to_write.append(elemnum)
@@ -105,15 +139,24 @@ class GetElements():
                 print elements_to_write
                 list_of_layers.append(elements_to_write)
 
+                fig = plt.figure()
+                ax = fig.add_subplot(111, projection='3d')
+                ax.scatter(x, y, z, zdir='y')
+                ax.set_xlim(-.5, .25)
+                ax.set_ylim(-.25, .5)
+                ax.set_zlim(-.25, .25)
+                plt.show()
+
+            list_of_layers = [[int(x) for x in row] for row in list_of_layers]
             print list_of_layers
-            '''fig = plt.figure()
-            ax = fig.add_subplot(111, projection='3d')
-            ax.scatter(x, y, z, zdir='y')
-            ax.set_xlim(-.5,.25)
-            ax.set_ylim(-.25,.5)
-            ax.set_zlim(-.25,.25)
-            plt.show()'''
+
+
+
 
 if __name__== "__main__":
-    grabnodes =GetElements("Heat_Job.inp")
+
+    #mymodel = mdb.models['Contact_Test']
+    mymodel = None
+
+    grabnodes =GetElements("Heat_Job.inp", 'Block-1-1', mymodel)
     grabnodes.getnodes(20)
