@@ -17288,7 +17288,7 @@
 *Solid Section, elset=_PickedSet2, material=IN718
 ,
 *End Instance
-**
+**  
 *Instance, name=Block-2-1, part=Block-2
           0.,      -0.0125,         -0.6
 *Node
@@ -37935,8 +37935,8 @@
     1,  8000,     1
 *Elset, elset=All_Set, instance=Block-2-1, generate
     1,  9600,     1
-*Elset, elset=boxSectionSet, instance=Block-1-1, generate
-   20,  8000,    20
+*Elset, elset=BoxSectionSet_TEST, instance=Block-2-1, generate
+  1,  20,   1
 *Nset, nset=_PickedSet40, internal, instance=Block-1-1, generate
     1,  9261,     1
 *Nset, nset=_PickedSet40, internal, instance=Block-2-1, generate
@@ -37945,6 +37945,10 @@
     1,  8000,     1
 *Elset, elset=_PickedSet40, internal, instance=Block-2-1, generate
     1,  9600,     1
+*Nset, nset=_PickedSet58, internal, instance=Block-1-1, generate
+    1,  9241,    21
+*Elset, elset=_PickedSet58, internal, instance=Block-1-1, generate
+    1,  7981,    20
 *Elset, elset=_Heat_Flux_Surface_S2, internal, instance=Block-1-1, generate
    1,  400,    1
 *Surface, type=ELEMENT, name=Heat_Flux_Surface
@@ -38046,8 +38050,8 @@ __PickedSurf42_S5, S5
 __PickedSurf43_S3, S3
 *End Assembly
 *Amplitude, name=Heat_Transfer_Amp, time=TOTAL TIME
-             0.,              0.,             0.5,              1.,             10.,              1.,             20.,              0.
-            75.,              0.
+             0.,              0.,            0.25,              1.,             1.5,              1.,              2.,              0.
+             3.,              0.
 ** 
 ** MATERIALS
 ** 
@@ -38076,38 +38080,3 @@ __PickedSurf43_S3, S3
 ** Name: Predefined Heat   Type: Temperature
 *Initial Conditions, type=TEMPERATURE
 _PickedSet40, 500.
-** 
-** INTERACTIONS
-** 
-** Interaction: Surface_Contact
-*Contact Pair, interaction="Heat Contact", type=SURFACE TO SURFACE
-_PickedSurf43, _PickedSurf42
-** ----------------------------------------------------------------
-** 
-** STEP: Heat_Transfer
-** 
-*Step, name=Heat_Transfer, nlgeom=NO, inc=2000
-*Heat Transfer, end=SS, deltmx=100.
-0.01, 3., 0.001, 1., 0.01
-** 
-** LOADS
-** 
-** Name: Heat_Flux   Type: Surface heat flux
-*Dsflux, amplitude=Heat_Transfer_Amp
-Heat_Flux_Surface, S, 5e+06
-** 
-** INTERACTIONS
-** 
-** Interaction: Surface_Radiation
-*Sradiate
-Radiation_Surface, R, 1000., 0.06
-** 
-** OUTPUT REQUESTS
-** 
-*Restart, write, frequency=0
-** 
-** FIELD OUTPUT: F-Output-1
-** 
-*Output, field, variable=PRESELECT
-*Output, history, frequency=0
-*End Step
