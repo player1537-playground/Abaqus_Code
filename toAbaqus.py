@@ -98,10 +98,19 @@ class AbaqusLayers:
             if i == 0:
                 self.model.SurfaceHeatFlux(name='Heat_Flux_' + str(i), createStepName='test_' + str(i),
                                            region=boxSurface, magnitude=500000000.0, amplitude='Heat_Transfer_Amp')
+                self.model.RadiationToAmbient(name="Surface_Radiation_" + str(i), createStepName='test_' + str(i),
+                                              surface=boxSurface, emissivity=.1)
+                self.model.interactions["Surface_Radiation_" + str(i)].setValuesInStep(stepName="test_" + str(i + 1),
+                                                                                       emissivity=0)
 
             else:
                 self.model.SurfaceHeatFlux(name='Heat_Flux_' + str(i), createStepName='test_' + str(i),
                                            region=boxSurface, magnitude=500000000.0, amplitude='Heat_Transfer_Amp')
+                self.model.RadiationToAmbient(name="Surface_Radiation_" + str(i), createStepName='test_' + str(i),
+                                              surface=boxSurface, emissivity=.1)
+                if i < max(self.numlayer) - 1:
+                    self.model.interactions["Surface_Radiation_" + str(i)].setValuesInStep(stepName="test_"+str(i + 1),
+                                                                                           emissivity=0)
 
 if __name__ == "__main__":
 

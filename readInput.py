@@ -54,6 +54,9 @@ def getnodes(givenInstances, inputfile):
             elif '*Nset,' in line:
                 end = count
                 break
+            elif '*End Instance' in line:
+                end = count
+                break
             else:
                 count += 1
 
@@ -65,10 +68,10 @@ def getnodes(givenInstances, inputfile):
         cool = sorted(nodes, key=lambda x: x[2],)
         # print elements
         # print cool
-        last_layer = min(nodes, key=lambda x: x[3],)[3] #change axis from 2
+        last_layer = min(nodes, key=lambda x: x[2],)[2] #change axis from 3
         list_of_layers = []
 
-        y = [i[3] for i in nodes] # change axis from 2
+        y = [i[2] for i in nodes] # change axis from 3
 
         seen = set()
         seen_add = seen.add
@@ -87,15 +90,15 @@ def getnodes(givenInstances, inputfile):
             print last_layer
 
             for i in nodes:
-                if i[3] <= layer and i[3] >= last_layer: # change axis from 2
+                if i[2] <= layer and i[2] >= last_layer: # change axis from 3
                     node_numbers.append((i[0]))
                     x.append(i[1])
                     y.append(i[2])
                     z.append(i[3])
 
+
             #print y
             last_layer = layer
-
             for i in elements:
                 element_numbers.append(i[0])
 
@@ -202,22 +205,20 @@ if __name__ == '__main__':
     # mymodel = mdb.models['Simplified Arcam model']
 
     inputfile = "Heat_Transfer_Test_1.inp"
-    givenInstances = ['test_sample-1', 'test_sample-1-lin-2-1', 'test_sample-1-lin-3-1', 'test_sample-1-lin-4-1',
-                      'test_sample-1-rad-2', 'test_sample-1-rad-4']
-    givenParts = ['test_sample-1', 'test_sample-1-lin-2-1', 'test_sample-1-lin-3-1', 'test_sample-1-lin-4-1',
-                  'test_sample-1-rad-2', 'test_sample-1-rad-4']
+    givenInstances = ['Powder_Bed']
+    givenParts = ['Powder_Bed']
     model_attribute = 'mymodel'
     numlayer = [20, 20, 20, 20, 20, 20]
     startLayer = [0, 0, 0, 0, 0, 0]
 
-    items = ['test_sample-1', 'test_sample-1-lin-2-1', 'test_sample-1-lin-3-1', 'test_sample-1-lin-4-1',
-                            'test_sample-1-rad-2', 'test_sample-1-rad-4']
+    items = ['Powder_Bed']
 
-    pool = multiprocessing.Pool() #use all available cores, otherwise specify the number you want as an argument
+    getnodes(givenInstances[0],inputfile)
+    '''pool = multiprocessing.Pool() #use all available cores, otherwise specify the number you want as an argument
     for i in items:
         pool.apply_async(getnodes, args=(i, inputfile))
     pool.close()
-    pool.join()
+    pool.join()'''
 
     # getlayers()
 # p = ProcessingPool(6)
