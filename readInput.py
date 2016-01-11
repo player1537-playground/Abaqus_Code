@@ -10,12 +10,83 @@ import step
 import load
 import interaction'''
 
+class AbaqusInput(object):
+    def __init__(self, nodes, elements):
+        pass
+
+    @classmethod
+    def from_file(cls, fileobj):
+        pass
+
+class LayerSplitter(object):
+    def __init__(self, abaqus_input):
+        pass
+
+    def _create_mappings(self):
+        layers = sorted(set([z values]))
+        layer_levels = [i for i, _ in enumerate(layers)]
+
+        # maybe
+        # node_to_elements: layer # => [node #'s]
+
+        # node_mapping: layer # => [node #'s]
+        # element_mapping: node # => [element #'s]
+        pass
+
+    def get_layers(self):
+        self._create_mappings()
+
+        layers = []
+        for layer_number in self.layer_levels:
+            layers.append([])
+
+            nodes = self.nodes_mapping[layer_number]
+
+            element_counts = collections.defaultdict(int)
+            for node in nodes:
+                elements = self.element_mapping[node]
+
+                for element in elements:
+                    element_counts[element] += 1
+
+            for element_number, count in element_counts.iteritems():
+                if count == 8:
+                    layers[-1].append(element_number)
+
+        return layers
+
+def main(input_filename):
+    with open(input_filename, "r") as f:
+        input_data = AbaqusInput.from_file(f)
+
+    layer_splitter = LayerSplitter(input_data)
+    layers = layer_splitter.get_layers()
+
+    with open("output.json", "w") as f:
+        data = {
+            "created_on": now(),
+            "input_file": input_filename,
+            "layers": layers
+        }
+
+        json.dump(data, f, separators=(',', ':'))
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('input_filename')
+    args = parser.parse_args()
+
+    main(**vars(args))
 
 def getnodes(givenInstances, inputfile):
 
     import re
     # import matplotlib.pyplot as plt
     # from mpl_toolkits.mplot3d import Axes3D
+
+    # AbaqusInput.from_file START
 
     print "locating nodes"
     model = givenInstances
@@ -63,9 +134,23 @@ def getnodes(givenInstances, inputfile):
         for i in range(start, end):
             elements.append(re.findall(r'[+-]?\d+\.*\d*', content[i]))
 
-        elements = [[float(f) for f in row] for row in elements]
-        nodes = [[float(f) for f in row] for row in nodes]
-        cool = sorted(nodes, key=lambda x: x[2],)
+        elements = [[int(f) if i == 0 else float(f) for i, f in enumerate(row)] for row in elements]
+        nodes = [[int(f) if i == 0 else float(f) for i, f in enumerate(row)] for row in nodes]
+
+        # AbaqusInput.from_file END
+
+        # _get_mapping
+        element_map = {
+            element[0]: element
+            for element in elements
+        }
+
+        node_map = {
+            node[0]: node
+            for node in nodes
+        }
+
+        #cool = sorted(nodes, key=lambda x: x[2],)
         # print elements
         # print cool
         last_layer = min(nodes, key=lambda x: x[2],)[2] #change axis from 3
@@ -106,9 +191,10 @@ def getnodes(givenInstances, inputfile):
 
             print("gathering Elements")
             for index, elemnum  in enumerate(element_numbers):
+
                 number_of_nodes = 0
                 for node in node_numbers:
-                    if node in elements[index][1:8]:
+                if node in elements[index][1:8]:
                         number_of_nodes += 1
 
                 if number_of_nodes == 7:
